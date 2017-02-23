@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Financial-Times/neo-model-utils-go/mapper"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
-	log "github.com/Sirupsen/logrus"
 	"github.com/jmcvetta/neoism"
 )
 
@@ -30,7 +29,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	crcQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (c:Thing{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)
+                MATCH (c:Content{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)
                 MATCH (cc)-[rel:SELECTS]->(t:Content)
                 RETURN t.uuid as uuid
                 ORDER BY rel.order
@@ -46,7 +45,6 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	var found bool
 
-	log.Printf("Found related content: %+v", neoCRC)
 	if (len(neoCRC)) != 0 {
 		found = true
 	}
