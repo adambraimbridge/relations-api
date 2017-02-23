@@ -26,7 +26,12 @@ func (cd cypherDriver) checkConnectivity() error {
 }
 
 func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
+	//neo curated related content a.k.a. (former) story package
 	neoCRC := []neoRelatedContent{}
+	//neo content package contained contents
+	neoCPCC := []neoRelatedContent{}
+	//neo contained in contents
+	neoCIC := []neoRelatedContent{}
 
 	crcQuery := &neoism.CypherQuery{
 		Statement: `
@@ -39,7 +44,29 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 		Result:     &neoCRC,
 	}
 
-	err := cd.conn.CypherBatch([]*neoism.CypherQuery{crcQuery})
+	cpcQuery := &neoism.CypherQuery{
+		Statement: `
+                MATCH (cLead:Thing{uuid:{contentUUID}})-[:CONTAINS]->(cp:ContentPackage)
+                MATCH (cp)-[rel:CONTAINS]->(c:Content)
+                RETURN c.uuid as uuid
+                ORDER BY rel.order
+                `,
+		Parameters: neoism.Props{"contentUUID": contentUUID},
+		Result:     &neoCPCC,
+	}
+
+	cpContainedInQuery := &neoism.CypherQuery{
+		Statement: `
+                MATCH (c:Thing{uuid:{contentUUID}})<-[:CONTAINS]-(cp:ContentPackage)
+                MATCH (cp)<-[rel:CONTAINS]-(cLead:Content)
+                RETURN cLead.uuid as uuid
+                ORDER BY rel.order
+                `,
+		Parameters: neoism.Props{"contentUUID": contentUUID},
+		Result:     &neoCIC,
+	}
+
+	err := cd.conn.CypherBatch([]*neoism.CypherQuery{crcQuery, cpcQuery, cpContainedInQuery})
 	if err != nil {
 		return relations{}, false, fmt.Errorf("Error querying Neo for uuid=%s, err=%v", contentUUID, err)
 	}
@@ -47,16 +74,21 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 	var found bool
 
 	log.Printf("Found related content: %+v", neoCRC)
-	if (len(neoCRC)) != 0 {
+	if len(neoCRC) != 0 || len(neoCPCC) != 0 || len(neoCIC) != 0 {
 		found = true
 	}
 
-	return cd.transformToRelations(neoCRC), found, nil
+	mappedCRC := cd.transformToRelatedContent(neoCRC);
+	mappedCPC := cd.transformToRelatedContent(neoCPCC);
+	mappedCIC := cd.transformToRelatedContent(neoCIC);
+	relations := relations{mappedCRC, mappedCPC, mappedCIC};
+
+	return relations, found, nil
 }
 
-func (cd cypherDriver) transformToRelations(neoCRC []neoRelatedContent) relations {
+func (cd cypherDriver) transformToRelatedContent(neoRelatedContent []neoRelatedContent, ) relatedContent {
 	mappedRelatedContent := []relatedContent{}
-	for _, neoContent := range neoCRC {
+	for _, neoContent := range neoRelatedContent {
 		c := relatedContent{
 			APIURL: mapper.APIURL(neoContent.UUID, []string{"Content"}, "local"),
 			ID:     mapper.IDURL(neoContent.UUID),
@@ -64,5 +96,5 @@ func (cd cypherDriver) transformToRelations(neoCRC []neoRelatedContent) relation
 		mappedRelatedContent = append(mappedRelatedContent, c)
 	}
 
-	return relations{mappedRelatedContent}
+	return mappedRelatedContent
 }
