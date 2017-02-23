@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/Financial-Times/neo-model-utils-go/mapper"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
-	log "github.com/Sirupsen/logrus"
 	"github.com/jmcvetta/neoism"
 )
+
+const ID_PREFIX = "http://www.ft.com/thing/"
 
 type Driver interface {
 	read(UUID string) (res relations, found bool, err error)
@@ -35,7 +36,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	crcQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (c:Thing{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)
+                MATCH (c:Content{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)
                 MATCH (cc)-[rel:SELECTS]->(t:Content)
                 RETURN t.uuid as uuid
                 ORDER BY rel.order
@@ -46,7 +47,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	cpcQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (cLead:Thing{uuid:{contentUUID}})-[:CONTAINS]->(cp:ContentPackage)
+                MATCH (cLead:Content{uuid:{contentUUID}})-[:CONTAINS]->(cp:ContentPackage)
                 MATCH (cp)-[rel:CONTAINS]->(c:Content)
                 RETURN c.uuid as uuid
                 ORDER BY rel.order
@@ -57,7 +58,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	cpContainedInQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (c:Thing{uuid:{contentUUID}})<-[:CONTAINS]-(cp:ContentPackage)
+                MATCH (c:Content{uuid:{contentUUID}})<-[:CONTAINS]-(cp:ContentPackage)
                 MATCH (cp)<-[rel:CONTAINS]-(cLead:Content)
                 RETURN cLead.uuid as uuid
                 ORDER BY rel.order
@@ -73,7 +74,6 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	var found bool
 
-	log.Printf("Found related content: %+v", neoCRC)
 	if len(neoCRC) != 0 || len(neoCPCC) != 0 || len(neoCIC) != 0 {
 		found = true
 	}
@@ -91,7 +91,7 @@ func (cd cypherDriver) transformToRelatedContent(neoRelatedContent []neoRelatedC
 	for _, neoContent := range neoRelatedContent {
 		c := relatedContent{
 			APIURL: mapper.APIURL(neoContent.UUID, []string{"Content"}, "local"),
-			ID:     mapper.IDURL(neoContent.UUID),
+			ID:     ID_PREFIX+neoContent.UUID,
 		}
 		mappedRelatedContent = append(mappedRelatedContent, c)
 	}
