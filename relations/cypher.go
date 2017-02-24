@@ -78,20 +78,20 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 		found = true
 	}
 
-	mappedCRC := cd.transformToRelatedContent(neoCRC);
-	mappedCPC := cd.transformToRelatedContent(neoCPCC);
-	mappedCIC := cd.transformToRelatedContent(neoCIC);
-	relations := relations{mappedCRC, mappedCPC, mappedCIC};
+	mappedCRC := cd.transformToRelatedContent(neoCRC)
+	mappedCPC := cd.transformToRelatedContent(neoCPCC)
+	mappedCIC := cd.transformToRelatedContent(neoCIC)
+	relations := relations{mappedCRC, mappedCPC, mappedCIC}
 
 	return relations, found, nil
 }
 
-func (cd cypherDriver) transformToRelatedContent(neoRelatedContent []neoRelatedContent, ) relatedContent {
+func (cd cypherDriver) transformToRelatedContent(neoRelatedContent []neoRelatedContent) []relatedContent {
 	mappedRelatedContent := []relatedContent{}
 	for _, neoContent := range neoRelatedContent {
 		c := relatedContent{
+			ID:     ID_PREFIX + neoContent.UUID,
 			APIURL: mapper.APIURL(neoContent.UUID, []string{"Content"}, "local"),
-			ID:     ID_PREFIX+neoContent.UUID,
 		}
 		mappedRelatedContent = append(mappedRelatedContent, c)
 	}
