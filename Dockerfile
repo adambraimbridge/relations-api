@@ -2,9 +2,8 @@ FROM alpine:3.5
 
 ENV SOURCE_DIR /relations-api-src
 
-COPY *.go .git $SOURCE_DIR/
+COPY *.go *.git $SOURCE_DIR/
 COPY relations/*.go $SOURCE_DIR/relations/
-#COPY vendor $SOURCE_DIR/vendor/
 
 RUN apk add --no-cache  --update bash ca-certificates \
   && apk --no-cache --virtual .build-dependencies add git go libc-dev \
@@ -22,6 +21,7 @@ RUN apk add --no-cache  --update bash ca-certificates \
   && mkdir -p $GOPATH/src/${REPO_PATH} \
   && cp -r $SOURCE_DIR/* $GOPATH/src/${REPO_PATH} \
   && cd $GOPATH/src/${REPO_PATH} \
+  && go get ./... \
   && echo ${LDFLAGS} \
   && go build -ldflags="${LDFLAGS}" \
   && mv relations-api / \
