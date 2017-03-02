@@ -7,8 +7,6 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
-const ID_PREFIX = "http://www.ft.com/thing/"
-
 type Driver interface {
 	read(UUID string) (res relations, found bool, err error)
 	checkConnectivity() error
@@ -90,8 +88,8 @@ func (cd cypherDriver) transformToRelatedContent(neoRelatedContent []neoRelatedC
 	mappedRelatedContent := []relatedContent{}
 	for _, neoContent := range neoRelatedContent {
 		c := relatedContent{
-			ID:     ID_PREFIX + neoContent.UUID,
 			APIURL: mapper.APIURL(neoContent.UUID, []string{"Content"}, "local"),
+			ID:     mapper.IDURL(neoContent.UUID),
 		}
 		mappedRelatedContent = append(mappedRelatedContent, c)
 	}
