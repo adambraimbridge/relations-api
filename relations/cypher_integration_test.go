@@ -127,12 +127,6 @@ func assertListContainsAll(t *testing.T, list interface{}, items ...interface{})
 }
 
 func getDatabaseConnection(t testing.TB) neoutils.NeoConnection {
-	db, err := getDBConn()
-	require.NoError(t, err, "Failed to connect to Neo4j")
-	return db
-}
-
-func getDBConn() (neoutils.NeoConnection, error) {
 	url := os.Getenv("NEO4J_TEST_URL")
 	if url == "" {
 		url = "http://localhost:7474/db/data"
@@ -140,7 +134,9 @@ func getDBConn() (neoutils.NeoConnection, error) {
 
 	conf := neoutils.DefaultConnectionConfig()
 	conf.Transactional = false
-	return neoutils.Connect(url, conf)
+	db, err := neoutils.Connect(url, conf)
+	require.NoError(t, err, "Failed to connect to Neo4j")
+	return db
 }
 
 func cleanDB(t testing.TB, db neoutils.NeoConnection, data []payloadData) {
