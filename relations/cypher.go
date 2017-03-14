@@ -45,7 +45,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	cpcQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (cLead:Content{uuid:{contentUUID}})-[:CONTAINS]->(cp:ContentPackage)
+                MATCH (cLead:Content{uuid:{contentUUID}})-[:CONTAINS]->(cp:ContentPackageLink)
                 MATCH (cp)-[rel:CONTAINS]->(c:Content)
                 RETURN c.uuid as uuid
                 ORDER BY rel.order
@@ -56,7 +56,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 
 	cpContainedInQuery := &neoism.CypherQuery{
 		Statement: `
-                MATCH (c:Content{uuid:{contentUUID}})<-[:CONTAINS]-(cp:ContentPackage)
+                MATCH (c:Content{uuid:{contentUUID}})<-[:CONTAINS]-(cp:ContentPackageLink)
                 MATCH (cp)<-[rel:CONTAINS]-(cLead:Content)
                 RETURN cLead.uuid as uuid
                 ORDER BY rel.order
