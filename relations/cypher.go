@@ -32,6 +32,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 	//neo contained in contents
 	neoCIC := []neoRelatedContent{}
 
+	//TODO Decide Curation or StoryPackage label to use to get story packages from Neo
 	crcQuery := &neoism.CypherQuery{
 		Statement: `
                 MATCH (c:Content{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)

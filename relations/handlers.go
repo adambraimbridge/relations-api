@@ -58,21 +58,33 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	err := validateUuid(uuid)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
-		w.Write([]byte(msg))
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
+		if errm != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
 		return
 	}
 	relations, found, err := hh.relationsDriver.read(uuid)
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", uuid, err)})
-		w.Write([]byte(msg))
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", uuid, err)})
+		if errm != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
 		return
 	}
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", uuid)})
-		w.Write([]byte(msg))
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", uuid)})
+		if errm != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
 		return
 	}
 
