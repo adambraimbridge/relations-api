@@ -28,12 +28,12 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 	//neo curated related content a.k.a. (former) story package
 	neoCRC := []neoRelatedContent{}
 	//neo content package contained contents
-	neoCPCC := []neoRelatedContent{}
+	neoCPContains := []neoRelatedContent{}
 	//neo contained in contents
-	neoCIC := []neoRelatedContent{}
+	neoCPContainedIn := []neoRelatedContent{}
 
 	//TODO Decide Curation or StoryPackage label to use to get story packages from Neo
-	crcQuery := &neoism.CypherQuery{
+	queryCRC := &neoism.CypherQuery{
 		Statement: `
                 MATCH (c:Content{uuid:{contentUUID}})<-[:IS_CURATED_FOR]-(cc:Curation)
                 MATCH (cc)-[rel:SELECTS]->(t:Content)
@@ -44,7 +44,7 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
 		Result:     &neoCRC,
 	}
 
-	cpcQuery := &neoism.CypherQuery{
+	queryCPContains := &neoism.CypherQuery{
 		Statement: `
                 MATCH (cp:ContentPackage{uuid:{contentUUID}})-[:CONTAINS]->(cc:ContentCollection)
                 MATCH (cc)-[rel:CONTAINS]->(c:Content)
@@ -52,10 +52,10 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
                 ORDER BY rel.order
                 `,
 		Parameters: neoism.Props{"contentUUID": contentUUID},
-		Result:     &neoCPCC,
+		Result:     &neoCPContains,
 	}
 
-	cpContainedInQuery := &neoism.CypherQuery{
+	queryCPContainedIn := &neoism.CypherQuery{
 		Statement: `
                 MATCH (c:Content{uuid:{contentUUID}})<-[:CONTAINS]-(cc:ContentCollection)
                 MATCH (cc)<-[rel:CONTAINS]-(cp:ContentPackage)
@@ -63,23 +63,23 @@ func (cd cypherDriver) read(contentUUID string) (relations, bool, error) {
                 ORDER BY rel.order
                 `,
 		Parameters: neoism.Props{"contentUUID": contentUUID},
-		Result:     &neoCIC,
+		Result:     &neoCPContainedIn,
 	}
 
-	err := cd.conn.CypherBatch([]*neoism.CypherQuery{crcQuery, cpcQuery, cpContainedInQuery})
+	err := cd.conn.CypherBatch([]*neoism.CypherQuery{queryCRC, queryCPContains, queryCPContainedIn})
 	if err != nil {
 		return relations{}, false, fmt.Errorf("Error querying Neo for uuid=%s, err=%v", contentUUID, err)
 	}
 
 	var found bool
 
-	if len(neoCRC) != 0 || len(neoCPCC) != 0 || len(neoCIC) != 0 {
+	if len(neoCRC) != 0 || len(neoCPContains) != 0 || len(neoCPContainedIn) != 0 {
 		found = true
 	}
 
 	mappedCRC := cd.transformToRelatedContent(neoCRC)
-	mappedCPC := cd.transformToRelatedContent(neoCPCC)
-	mappedCIC := cd.transformToRelatedContent(neoCIC)
+	mappedCPC := cd.transformToRelatedContent(neoCPContains)
+	mappedCIC := cd.transformToRelatedContent(neoCPContainedIn)
 	relations := relations{mappedCRC, mappedCPC, mappedCIC}
 
 	return relations, found, nil
