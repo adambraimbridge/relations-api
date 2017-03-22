@@ -8,6 +8,9 @@ COPY relations/*.go $SOURCE_DIR/relations/
 RUN apk add --no-cache  --update bash ca-certificates \
   && apk --no-cache --virtual .build-dependencies add git go libc-dev \
   && cd $SOURCE_DIR \
+  && export GOPATH=/gopath \
+  && go get -u github.com/kardianos/govendor \
+  && $GOPATH/bin/govendor sync \
   && BUILDINFO_PACKAGE="github.com/Financial-Times/service-status-go/buildinfo." \
   && VERSION="version=$(git describe --tag --always 2> /dev/null)" \
   && DATETIME="dateTime=$(date -u +%Y%m%d%H%M%S)" \
@@ -16,7 +19,6 @@ RUN apk add --no-cache  --update bash ca-certificates \
   && BUILDER="builder=$(go version)" \
   && LDFLAGS="-X '"${BUILDINFO_PACKAGE}$VERSION"' -X '"${BUILDINFO_PACKAGE}$DATETIME"' -X '"${BUILDINFO_PACKAGE}$REPOSITORY"' -X '"${BUILDINFO_PACKAGE}$REVISION"' -X '"${BUILDINFO_PACKAGE}$BUILDER"'" \
   && cd .. \
-  && export GOPATH=/gopath \
   && REPO_PATH="github.com/Financial-Times/relations-api" \
   && mkdir -p $GOPATH/src/${REPO_PATH} \
   && cp -r $SOURCE_DIR/* $GOPATH/src/${REPO_PATH} \

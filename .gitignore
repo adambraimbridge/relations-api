@@ -1,3 +1,4 @@
 relations-api*
 .idea
 /.project
+vendor/*/

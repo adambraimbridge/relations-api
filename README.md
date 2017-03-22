@@ -7,11 +7,14 @@ Relations Api is an internally used API for retrieving content collection conten
 ## Usage
 ### Install
 `go get -u github.com/Financial-Times/relations-api`
-### Run
-```
-Usage: relations-api-neo4j [OPTIONS]
 
-A public RESTful API for accessing Relations in neo4j
+## Running locally
+To run the service locally, you will need to run the following commands first to get the vendored dependencies for this project:
+  `go get github.com/kardianos/govendor` and
+  `govendor sync`
+
+```
+Usage: relations-api [OPTIONS]
 
 Options:
   --neo-url="http://localhost:7474/db/data"   neo4j endpoint URL ($NEO_URL)
