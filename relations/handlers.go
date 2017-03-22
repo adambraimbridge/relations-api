@@ -54,8 +54,8 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	uuid := vars["uuid"]
-	err := validateUuid(uuid)
+	contentUUID := vars["uuid"]
+	err := validateUuid(contentUUID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
@@ -66,10 +66,10 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	relations, found, err := hh.relationsDriver.read(uuid)
+	relations, found, err := hh.relationsDriver.read(contentUUID)
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", uuid, err)})
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
 		if errm != nil {
 			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
 		} else {
@@ -79,7 +79,7 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	}
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", uuid)})
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", contentUUID)})
 		if errm != nil {
 			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
 		} else {
@@ -93,7 +93,7 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.NewEncoder(w).Encode(relations); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content with uuid %s, err=%v", uuid, err)})
+		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content with uuid %s, err=%v", contentUUID, err)})
 		w.Write([]byte(msg))
 	}
 }

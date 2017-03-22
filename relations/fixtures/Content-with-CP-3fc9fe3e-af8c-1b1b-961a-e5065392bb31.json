@@ -1,0 +1,15 @@
+{
+  "uuid": "3fc9fe3e-af8c-1b1b-961a-e5065392bb31",
+  "title": "The Fste of Axilion Trade",
+  "byline": "By D.J. Kettlety in Miltonburg",
+  "identifiers":[ {
+    "authority": "http://api.ft.com/system/FTCOM-METHODE",
+    "identifierValue": "d3ea58ff-0c38-42fd-aa36-1f4f77f325e0  "
+  }],
+  "publishedDate": "2016-09-16T10:55:18.000Z",
+  "body": "<body><p>With the disappearance of Karl, the son of Axilion Trade's proprietor Max Axilion, the future of the small shop situated in the Alleys is now uncertain. Rhogan Hammerfall, the new business partner has declared that he is incapable of keeping the business running if Max remains absent searching for Karl for any length of time. It is unknown why he has taken to making this announcement.</p>\n<p>Speculation is high as to the whereabouts of the missing young man, with sightings having been reported in the capital city of Docar. However these have been unsubstantiated and the more likely suspicion is that he has been abducted and is a prisoner is the southern city of Esmay.</p>\n<p></p>\n</body>",
+  "brands": [{
+    "id": "http://api.ft.com/things/dbb0bdae-1f0c-11e4-b0cb-b2227cce2b54"
+  }],
+  "contentPackage": "63559ba7-b48d-4467-1b1b-ce956f9e9494"
+}

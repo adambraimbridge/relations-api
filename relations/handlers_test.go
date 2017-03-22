@@ -20,7 +20,9 @@ type test struct {
 }
 
 const knownUUID = "f78c1482-a65c-413e-b753-ca3ce3cb84f0"
-const successfulResponse = `{"curatedRelatedContent":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}]}`
+const successfulResponse = `{"curatedRelatedContent":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}],
+"contains":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}],
+"containedIn":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}]}`
 
 func TestGetHandler(t *testing.T) {
 	tests := []test{
@@ -64,9 +66,11 @@ func (dS dummyService) read(contentUUID string) (relations, bool, error) {
 		return relations{}, false, errors.New("TEST failing to READ")
 	}
 	if contentUUID == dS.contentUUID {
-		return relations{[]relatedContent{
-			{ID: "http://id-" + contentUUID, APIURL: "http://apiurl-" + contentUUID},
-		}}, true, nil
+		return relations{
+			[]relatedContent{{ID: "http://id-" + contentUUID, APIURL: "http://apiurl-" + contentUUID}},
+			[]relatedContent{{ID: "http://id-" + contentUUID, APIURL: "http://apiurl-" + contentUUID}},
+			[]relatedContent{{ID: "http://id-" + contentUUID, APIURL: "http://apiurl-" + contentUUID}},
+		}, true, nil
 	}
 	return relations{}, false, nil
 }

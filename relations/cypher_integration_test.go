@@ -24,8 +24,10 @@ type payloadData struct {
 }
 
 var (
-	leadContent = payloadData{"3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "./fixtures/Content-with-SP-3fc9fe3e-af8c-4a4a-961a-e5065392bb31.json",
+	leadContentSP = payloadData{"3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "./fixtures/Content-with-SP-3fc9fe3e-af8c-4a4a-961a-e5065392bb31.json",
 		"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
+	leadContentCP = payloadData{"3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "./fixtures/Content-with-CP-3fc9fe3e-af8c-1b1b-961a-e5065392bb31.json",
+		"http://api.ft.com/things/3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1b1b-961a-e5065392bb31"}
 	relatedContent1 = payloadData{"3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-1a1a-961a-e5065392bb31.json",
 		"http://api.ft.com/things/3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1a1a-961a-e5065392bb31"}
 	relatedContent2 = payloadData{"3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-2a2a-961a-e5065392bb31.json",
@@ -34,7 +36,9 @@ var (
 		"http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
 	storyPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/StoryPackage-63559ba7-b48d-4467-b2b0-ce956f9e9494.json",
 		"", ""}
-	allData = []payloadData{leadContent, relatedContent1, relatedContent2, relatedContent3, storyPackage}
+	contentPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
+		"", ""}
+	allData = []payloadData{leadContentSP, leadContentCP, relatedContent1, relatedContent2, relatedContent3, storyPackage, contentPackage}
 )
 
 func TestRetrieveCuratedRelatedContent(t *testing.T) {
@@ -48,24 +52,75 @@ func TestRetrieveCuratedRelatedContent(t *testing.T) {
 			{relatedContent3.id, relatedContent3.apiURL},
 		},
 	}
-	db := getDatabaseConnection(t)
-	contents := []payloadData{leadContent, relatedContent1, relatedContent2, relatedContent3}
-	cleanDB(t, db, allData)
+	conn := getDatabaseConnection(t)
+	contents := []payloadData{leadContentSP, relatedContent1, relatedContent2, relatedContent3}
+	cleanDB(t, conn, allData)
 
-	writeContent(t, db, contents)
-	writeStoryPackage(t, db, []payloadData{storyPackage})
-	defer cleanDB(t, db, allData)
+	writeContent(t, conn, contents)
+	writeContentCollection(t, conn, []payloadData{storyPackage}, "StoryPackage")
+	defer cleanDB(t, conn, allData)
 
-	driver := NewCypherDriver(db)
-	actualCRC, found, err := driver.read(leadContent.uuid)
-	assert.NoError(t, err, "Unexpected error for content %s", leadContent.uuid)
-	assert.True(t, found, "Found no relations for content %s", leadContent.uuid)
+	driver := NewCypherDriver(conn)
+	actualCRC, found, err := driver.read(leadContentSP.uuid)
+	assert.NoError(t, err, "Unexpected error for content %s", leadContentSP.uuid)
+	assert.True(t, found, "Found no relations for content %s", leadContentSP.uuid)
 	assert.Equal(t, len(expectedResponse.CuratedRelatedContents), len(actualCRC.CuratedRelatedContents), "Didn't get the same number of curated related content")
 	assertListContainsAll(t, actualCRC.CuratedRelatedContents, expectedResponse.CuratedRelatedContents)
 }
 
-func writeContent(t testing.TB, db neoutils.NeoConnection, data []payloadData) baseftrwapp.Service {
-	contentRW := content.NewCypherContentService(db)
+func TestRetrieveContainsContent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Short flag is set. Skipping integration test")
+	}
+	expectedResponse := relations{
+		Contains: []relatedContent{
+			{relatedContent1.id, relatedContent1.apiURL},
+			{relatedContent2.id, relatedContent2.apiURL},
+		},
+	}
+	conn := getDatabaseConnection(t)
+	contents := []payloadData{leadContentCP, relatedContent1, relatedContent2}
+	cleanDB(t, conn, allData)
+
+	writeContent(t, conn, contents)
+	writeContentCollection(t, conn, []payloadData{contentPackage}, "ContentPackage")
+	defer cleanDB(t, conn, allData)
+
+	driver := NewCypherDriver(conn)
+	actualResponse, found, err := driver.read(leadContentCP.uuid)
+	assert.NoError(t, err, "Unexpected error for content %s", leadContentCP.uuid)
+	assert.True(t, found, "Found no relations for content %s", leadContentCP.uuid)
+	assert.Equal(t, len(expectedResponse.Contains), len(actualResponse.Contains), "Didn't get the same number of content in contains")
+	assertListContainsAll(t, actualResponse.Contains, expectedResponse.Contains)
+}
+
+func TestRetrieveContainedInContent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Short flag is set. Skipping integration test")
+	}
+	expectedResponse := relations{
+		ContainedIn: []relatedContent{
+			{leadContentCP.id, leadContentCP.apiURL},
+		},
+	}
+	conn := getDatabaseConnection(t)
+	contents := []payloadData{leadContentCP, relatedContent1, relatedContent2}
+	cleanDB(t, conn, allData)
+
+	writeContent(t, conn, contents)
+	writeContentCollection(t, conn, []payloadData{contentPackage}, "ContentPackage")
+	defer cleanDB(t, conn, allData)
+
+	driver := NewCypherDriver(conn)
+	actualResponse, found, err := driver.read(relatedContent2.uuid)
+	assert.NoError(t, err, "Unexpected error for content %s", relatedContent2.uuid)
+	assert.True(t, found, "Found no relations for content %s", relatedContent2.uuid)
+	assert.Equal(t, len(expectedResponse.ContainedIn), len(actualResponse.ContainedIn), "Didn't get the same number of containedIn content")
+	assertListContainsAll(t, actualResponse.ContainedIn, expectedResponse.ContainedIn)
+}
+
+func writeContent(t testing.TB, conn neoutils.NeoConnection, data []payloadData) baseftrwapp.Service {
+	contentRW := content.NewCypherContentService(conn)
 	assert.NoError(t, contentRW.Initialise())
 	for _, d := range data {
 		writeJSONWithService(t, contentRW, d.path)
@@ -73,13 +128,18 @@ func writeContent(t testing.TB, db neoutils.NeoConnection, data []payloadData) b
 	return contentRW
 }
 
-func writeStoryPackage(t testing.TB, db neoutils.NeoConnection, data []payloadData) collection.Service {
-	contentCollectionRW := collection.NewContentCollectionService(db)
+func writeContentCollection(t testing.TB, conn neoutils.NeoConnection, data []payloadData, ccType string) {
+	labels := []string{}
+	relation := "CONTAINS"
+	if ccType == "StoryPackage" {
+		labels = []string{"Curation", "StoryPackage"}
+		relation = "SELECTS"
+	}
+	contentCollectionRW := collection.NewContentCollectionService(conn, labels, relation)
 	assert.NoError(t, contentCollectionRW.Initialise())
 	for _, d := range data {
 		writeJSONWithContentCollectionService(t, contentCollectionRW, d.path)
 	}
-	return contentCollectionRW
 }
 
 func writeJSONWithService(t testing.TB, service baseftrwapp.Service, pathToJSONFile string) {
@@ -96,7 +156,7 @@ func writeJSONWithService(t testing.TB, service baseftrwapp.Service, pathToJSONF
 	require.NoError(t, err)
 }
 
-func writeJSONWithContentCollectionService(t testing.TB, service collection.Service, pathToJSONFile string) {
+func writeJSONWithContentCollectionService(t testing.TB, service baseftrwapp.Service, pathToJSONFile string) {
 	path, err := filepath.Abs(pathToJSONFile)
 	require.NoError(t, err)
 	f, err := os.Open(path)
@@ -106,7 +166,7 @@ func writeJSONWithContentCollectionService(t testing.TB, service collection.Serv
 	dec := json.NewDecoder(f)
 	inst, _, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
-	err = service.Write(inst, "StoryPackage")
+	err = service.Write(inst)
 	require.NoError(t, err)
 }
 
@@ -134,12 +194,12 @@ func getDatabaseConnection(t testing.TB) neoutils.NeoConnection {
 
 	conf := neoutils.DefaultConnectionConfig()
 	conf.Transactional = false
-	db, err := neoutils.Connect(url, conf)
+	conn, err := neoutils.Connect(url, conf)
 	require.NoError(t, err, "Failed to connect to Neo4j")
-	return db
+	return conn
 }
 
-func cleanDB(t testing.TB, db neoutils.NeoConnection, data []payloadData) {
+func cleanDB(t testing.TB, conn neoutils.NeoConnection, data []payloadData) {
 	qs := make([]*neoism.CypherQuery, len(data))
 	for i, d := range data {
 		qs[i] = &neoism.CypherQuery{
@@ -149,6 +209,6 @@ func cleanDB(t testing.TB, db neoutils.NeoConnection, data []payloadData) {
 			DELETE iden, i
 			DETACH DELETE a`, d.uuid)}
 	}
-	err := db.CypherBatch(qs)
+	err := conn.CypherBatch(qs)
 	assert.NoError(t, err)
 }
