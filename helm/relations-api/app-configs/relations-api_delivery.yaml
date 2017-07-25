@@ -3,4 +3,4 @@ replicaCount: 2
 service:
   name: relations-api
 env:
-	graphite_prefix: "coco.services.k8s.relations-api"
+  graphite_prefix: "coco.services.k8s.relations-api"
