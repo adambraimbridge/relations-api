@@ -1,0 +1,6 @@
+# Values used for the deployed application.
+replicaCount: 2
+service:
+  name: relations-api
+env:
+	graphite_prefix: "coco.services.k8s.relations-api"

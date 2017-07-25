@@ -1,4 +1,4 @@
-relations-api*
+/relations-api*
 .idea
 /.project
 vendor/*/
