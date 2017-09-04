@@ -43,7 +43,7 @@ spec:
               name: global-config 
               key: graphite.address
         - name: GRAPHITE_PREFIX
-          value: {{ .Values.env.graphite_prefix }} 
+          value: 'coco.services.{{required "The target_env value is required for this app. Use helm upgrade ... --set target_env=... when installing." .Values.target_env}}.relations-api' 
         ports: 
         - containerPort: 8080 
         livenessProbe: 
