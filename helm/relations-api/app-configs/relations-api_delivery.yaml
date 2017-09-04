@@ -4,3 +4,4 @@ service:
   name: relations-api
 env:
   app_port: "8080"
+  graphite_prefix: "coco.services.k8s.relations-api"
