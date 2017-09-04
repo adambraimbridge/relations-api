@@ -3,5 +3,5 @@ replicaCount: 2
 service:
   name: relations-api
 env:
-  graphite_prefix: "coco.services.k8s.relations-api"
+  graphite_prefix: "coco.services.{{required "The target_env value is required for this app. Use helm upgrade ... --set target_env=... when installing." .Values.target_env}}.relations-api"
   app_port: "8080"
