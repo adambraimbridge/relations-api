@@ -2,22 +2,24 @@ machine:
   services:
     - docker
   environment:
-    GOPATH: "${HOME}/.go_workspace:/usr/local/go_workspace:${HOME}/.go_project"
-    GO_PROJECT_PATH: "${HOME}/.go_project/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+    PROJECT_GOPATH: "${HOME}/.go_project"
+    PROJECT_PARENT_PATH: "${PROJECT_GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}"
+    PROJECT_PATH: "${PROJECT_PARENT_PATH}/${CIRCLE_PROJECT_REPONAME}"
+    GOPATH: "${HOME}/.go_workspace:${PROJECT_GOPATH}"
     NEO4J_TEST_URL: http://localhost:7474/db/data/
 
 checkout:
   post:
-    - mkdir -p $(dirname ${GO_PROJECT_PATH})
-    - ln -fs $HOME/$CIRCLE_PROJECT_REPONAME $GO_PROJECT_PATH
+    - mkdir -p "${PROJECT_PARENT_PATH}"
+    - ln -sf "${HOME}/${CIRCLE_PROJECT_REPONAME}/" "${PROJECT_PATH}"
 
 dependencies:
   pre:
     - go get -u github.com/kardianos/govendor
   override:
-    - cd $GO_PROJECT_PATH && govendor sync
-    - cd $GO_PROJECT_PATH && go get -t -d -v ./...
-    - cd $GO_PROJECT_PATH && go build -v
+    - cd $PROJECT_PATH && govendor sync
+    - cd $PROJECT_PATH && go get -t -d -v ./...
+    - cd $PROJECT_PATH && go build -v
 test:
   pre:
     - go get -u github.com/jstemmer/go-junit-report
@@ -26,8 +28,8 @@ test:
     - wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
   override:
     - mkdir -p $CIRCLE_TEST_REPORTS/golang
-    - cd $GO_PROJECT_PATH && go test -race -v ./... | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
-    - cd $GO_PROJECT_PATH && go list ./... | grep -v 'vendor' | awk -F/ '{print $4}' | xargs -I {} go test -v -cover -race -coverprofile=$CIRCLE_ARTIFACTS/{}.out ./{}
+    - cd $PROJECT_PATH && go test -race -v ./... | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
+    - cd $PROJECT_PATH && go list ./... | grep -v 'vendor' | awk -F/ '{print $4}' | xargs -I {} go test -v -cover -race -coverprofile=$CIRCLE_ARTIFACTS/{}.out ./{}
     - cd $CIRCLE_ARTIFACTS && sed -i '1d' *.out
     - |
       echo "mode: atomic" > $CIRCLE_ARTIFACTS/overall-coverage.result
