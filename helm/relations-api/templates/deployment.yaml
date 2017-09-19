@@ -1,5 +1,3 @@
-##this is an example deployment.yaml that should be customized in order to meet the configuration for app k8s deployment
-
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -32,18 +30,13 @@ spec:
             configMapKeyRef: 
               name: global-config 
               key: neo4j.read.only.url
-        - name: NEO_URL 
-          valueFrom: 
-            configMapKeyRef: 
-              name: global-config 
-              key: neo4j.read.only.url
         - name: GRAPHITE_ADDRESS
           valueFrom:
             configMapKeyRef: 
               name: global-config 
               key: graphite.address
         - name: GRAPHITE_PREFIX
-          value: {{ .Values.env.graphite_prefix }} 
+          value: 'coco.services.{{required "The target_env value is required for this app. Use helm upgrade ... --set target_env=... when installing." .Values.target_env}}.{{ .Values.service.name }}'
         ports: 
         - containerPort: 8080 
         livenessProbe: 
