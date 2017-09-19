@@ -2,14 +2,16 @@ machine:
   services:
     - docker
   environment:
-    GOPATH: "${HOME}/.go_workspace:/usr/local/go_workspace:${HOME}/.go_project"
-    GO_PROJECT_PATH: "${HOME}/.go_project/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+    PROJECT_GOPATH: "${HOME}/.go_project"
+    PROJECT_PARENT_PATH: "${PROJECT_GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}"
+    GO_PROJECT_PATH: "${PROJECT_PARENT_PATH}/${CIRCLE_PROJECT_REPONAME}"
+    GOPATH: "${HOME}/.go_workspace:${PROJECT_GOPATH}"
     NEO4J_TEST_URL: http://localhost:7474/db/data/
 
 checkout:
   post:
-    - mkdir -p $(dirname ${GO_PROJECT_PATH})
-    - ln -fs $HOME/$CIRCLE_PROJECT_REPONAME $GO_PROJECT_PATH
+    - mkdir -p "${PROJECT_PARENT_PATH}"
+    - ln -sf "${HOME}/${CIRCLE_PROJECT_REPONAME}/" "${GO_PROJECT_PATH}"
 
 dependencies:
   pre:
