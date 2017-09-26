@@ -1,4 +1,5 @@
-relations-api*
+/relations-api*
 .idea
 /.project
 vendor/*/
+.DS_Store
