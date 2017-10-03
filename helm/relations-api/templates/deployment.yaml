@@ -24,7 +24,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env: 
         - name: APP_PORT 
-          value: {{ .Values.env.app_port }}
+          value: "{{ .Values.env.app_port }}"
         - name: NEO_URL 
           valueFrom: 
             configMapKeyRef: 
