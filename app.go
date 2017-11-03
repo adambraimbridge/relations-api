@@ -116,6 +116,7 @@ func router(hh relations.HttpHandlers) http.Handler {
 	servicesRouter := mux.NewRouter()
 
 	servicesRouter.HandleFunc("/content/{uuid}/relations", hh.GetRelations).Methods("GET")
+	servicesRouter.HandleFunc("/contentcollection/{uuid}/relations", hh.GetRelations).Methods("GET")
 
 	var monitoringRouter http.Handler = servicesRouter
 	monitoringRouter = httphandlers.TransactionAwareRequestLoggingHandler(log.StandardLogger(), monitoringRouter)

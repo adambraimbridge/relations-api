@@ -8,10 +8,13 @@ import (
 	"github.com/Financial-Times/go-fthealth/v1a"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
+	"regexp"
 )
 
+var reqPathTypeRegexp = regexp.MustCompile("^/(.*?)/")
+
 type HttpHandlers struct {
-	relationsDriver    Driver
+	cypherDriver       Driver
 	cacheControlHeader string
 }
 
@@ -19,8 +22,8 @@ type ErrorMessage struct {
 	Message string `json:"message"`
 }
 
-func NewHttpHandlers(relationsDriver Driver, cacheControlHeader string) HttpHandlers {
-	return HttpHandlers{relationsDriver, cacheControlHeader}
+func NewHttpHandlers(cypherDriver Driver, cacheControlHeader string) HttpHandlers {
+	return HttpHandlers{cypherDriver, cacheControlHeader}
 }
 
 func (hh *HttpHandlers) HealthCheck(neoURL string) v1a.Check {
@@ -35,26 +38,26 @@ func (hh *HttpHandlers) HealthCheck(neoURL string) v1a.Check {
 }
 
 func (hh *HttpHandlers) Checker() (string, error) {
-	err := hh.relationsDriver.checkConnectivity()
-	if err == nil {
-		return "Connectivity to Neo4j is ok", err
+	err := hh.cypherDriver.checkConnectivity()
+	if err != nil {
+		return "Error connecting to Neo4j", err
 	}
-	return "Error connecting to Neo4j", err
+
+	return "Connectivity to Neo4j is ok", err
 }
 
 func (hh *HttpHandlers) GoodToGo(writer http.ResponseWriter, req *http.Request) {
 	if _, err := hh.Checker(); err != nil {
 		writer.WriteHeader(http.StatusServiceUnavailable)
 	}
-
 }
 
 func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
-
 	contentUUID := vars["uuid"]
+
 	err := validateUuid(contentUUID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -66,7 +69,16 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	relations, found, err := hh.relationsDriver.read(contentUUID)
+
+	nodeType := reqPathTypeRegexp.FindStringSubmatch(r.URL.Path)[1]
+	var rel relations
+	var found bool
+	if nodeType == "content" {
+		rel, found, err = hh.cypherDriver.findContentRelations(contentUUID)
+	} else if nodeType == "contentcollection" {
+		rel, found, err = hh.cypherDriver.findContentCollectionRelations(contentUUID)
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
@@ -79,7 +91,7 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	}
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", contentUUID)})
+		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for %s with uuid %s", nodeType, contentUUID)})
 		if errm != nil {
 			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
 		} else {
@@ -91,9 +103,9 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", hh.cacheControlHeader)
 	w.WriteHeader(http.StatusOK)
 
-	if err = json.NewEncoder(w).Encode(relations); err != nil {
+	if err = json.NewEncoder(w).Encode(rel); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content with uuid %s, err=%v", contentUUID, err)})
+		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for %s with uuid %s, err=%v", nodeType, contentUUID, err)})
 		w.Write([]byte(msg))
 	}
 }
