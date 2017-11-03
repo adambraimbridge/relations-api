@@ -1,9 +1,9 @@
 package relations
 
 import (
-	"testing"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var givenNeoRelatedContent []neoRelatedContent = []neoRelatedContent{

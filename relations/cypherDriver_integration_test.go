@@ -25,19 +25,19 @@ type payloadData struct {
 
 var (
 	leadContentSP = payloadData{"3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "./fixtures/Content-with-SP-3fc9fe3e-af8c-4a4a-961a-e5065392bb31.json",
-								"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
+		"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
 	leadContentCP = payloadData{"3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "./fixtures/Content-with-CP-3fc9fe3e-af8c-1b1b-961a-e5065392bb31.json",
-								"http://api.ft.com/things/3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1b1b-961a-e5065392bb31"}
+		"http://api.ft.com/things/3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1b1b-961a-e5065392bb31"}
 	relatedContent1 = payloadData{"3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-1a1a-961a-e5065392bb31.json",
-								  "http://api.ft.com/things/3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1a1a-961a-e5065392bb31"}
+		"http://api.ft.com/things/3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1a1a-961a-e5065392bb31"}
 	relatedContent2 = payloadData{"3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-2a2a-961a-e5065392bb31.json",
-								  "http://api.ft.com/things/3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-2a2a-961a-e5065392bb31"}
+		"http://api.ft.com/things/3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-2a2a-961a-e5065392bb31"}
 	relatedContent3 = payloadData{"3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-3a3a-961a-e5065392bb31.json",
-								  "http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
+		"http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
 	storyPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/StoryPackage-63559ba7-b48d-4467-b2b0-ce956f9e9494.json",
-							   "", ""}
+		"", ""}
 	contentPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
-								 "", ""}
+		"", ""}
 	allData = []payloadData{leadContentSP, leadContentCP, relatedContent1, relatedContent2, relatedContent3, storyPackage, contentPackage}
 )
 
