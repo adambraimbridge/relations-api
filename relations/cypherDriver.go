@@ -87,7 +87,7 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 
 	queryCPContainedIn := &neoism.CypherQuery{
 		Statement: `
-                MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})<-[:CONTAINS]-(cp:ContentPackage)
+                MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})<-[rel:CONTAINS]-(cp:ContentPackage)
                 RETURN cp.uuid as uuid
                 ORDER BY rel.order
                 `,
@@ -97,7 +97,7 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 
 	queryCPContains := &neoism.CypherQuery{
 		Statement: `
-                MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})-[:CONTAINS]->(c:Content)
+                MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})-[rel:CONTAINS]->(c:Content)
                 RETURN c.uuid as uuid
                 ORDER BY rel.order
                 `,
