@@ -170,9 +170,8 @@ func writeContentCollection(t testing.TB, conn neoutils.NeoConnection, data []pa
 	if ccType == "StoryPackage" {
 		labels = []string{"Curation", "StoryPackage"}
 		relation = "SELECTS"
-	} else if ccType == "ContentPackage" {
-		labels = []string{"ContentCollection"}
 	}
+
 	contentCollectionRW := collection.NewContentCollectionService(conn, labels, relation)
 	assert.NoError(t, contentCollectionRW.Initialise())
 	for _, d := range data {
