@@ -36,7 +36,7 @@ var (
 								  "http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
 	storyPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/StoryPackage-63559ba7-b48d-4467-b2b0-ce956f9e9494.json",
 							   "", ""}
-	contentPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
+	contentPackage = payloadData{"63559ba7-b48d-4467-1b1b-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
 								 "", ""}
 	allData = []payloadData{leadContentSP, leadContentCP, relatedContent1, relatedContent2, relatedContent3, storyPackage, contentPackage}
 )
