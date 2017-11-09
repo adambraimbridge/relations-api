@@ -2,13 +2,14 @@ package relations
 
 import (
 	"fmt"
+
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/jmcvetta/neoism"
 )
 
 type Driver interface {
 	findContentRelations(UUID string) (res relations, found bool, err error)
-	findContentCollectionRelations(UUID string) (res relations, found bool, err error)
+	findContentCollectionRelations(UUID string) (res ccRelations, found bool, err error)
 	checkConnectivity() error
 }
 
@@ -25,9 +26,9 @@ func (cd *cypherDriver) checkConnectivity() error {
 }
 
 func (cd *cypherDriver) findContentRelations(contentUUID string) (relations, bool, error) {
-	neoCRC := []neoRelatedContent{}
-	neoCPContains := []neoRelatedContent{}
-	neoCPContainedIn := []neoRelatedContent{}
+	var neoCRC []neoRelatedContent
+	var neoCPContains []neoRelatedContent
+	var neoCPContainedIn []neoRelatedContent
 
 	queryCRC := &neoism.CypherQuery{
 		Statement: `
@@ -81,15 +82,15 @@ func (cd *cypherDriver) findContentRelations(contentUUID string) (relations, boo
 	return relations, found, nil
 }
 
-func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID string) (relations, bool, error) {
-	neoCPContainedIn := []neoRelatedContent{}
-	neoCPContains := []neoRelatedContent{}
+func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID string) (ccRelations, bool, error) {
+	var neoCPContainedIn []neoRelatedContent
+	var neoCPContains []neoRelatedContent
 
 	queryCPContainedIn := &neoism.CypherQuery{
 		Statement: `
                 MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})<-[rel:CONTAINS]-(cp:ContentPackage)
                 RETURN cp.uuid as uuid
-                ORDER BY rel.order
+                LIMIT 1
                 `,
 		Parameters: neoism.Props{"contentCollectionUUID": contentCollectionUUID},
 		Result:     &neoCPContainedIn,
@@ -107,7 +108,7 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 
 	err := cd.conn.CypherBatch([]*neoism.CypherQuery{queryCPContains, queryCPContainedIn})
 	if err != nil {
-		return relations{}, false, fmt.Errorf("Error querying Neo for uuid=%s, err=%v", contentCollectionUUID, err)
+		return ccRelations{}, false, fmt.Errorf("Error querying Neo for uuid=%s, err=%v", contentCollectionUUID, err)
 	}
 
 	var found bool
@@ -115,9 +116,12 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 		found = true
 	}
 
-	mappedCPC := transformToRelatedContent(neoCPContains)
-	mappedCIC := transformToRelatedContent(neoCPContainedIn)
-	relations := relations{nil, mappedCPC, mappedCIC}
+	var containedIn neoRelatedContent
+	if len(neoCPContainedIn) != 0 {
+		containedIn = neoCPContainedIn[0]
+	}
 
-	return relations, found, nil
+	ccRelations := ccRelations{containedIn, neoCPContains}
+
+	return ccRelations, found, nil
 }

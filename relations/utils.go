@@ -3,7 +3,7 @@ package relations
 import "github.com/Financial-Times/neo-model-utils-go/mapper"
 
 func transformToRelatedContent(neoRelatedContent []neoRelatedContent) []relatedContent {
-	mappedRelatedContent := []relatedContent{}
+	var mappedRelatedContent []relatedContent
 	for _, neoContent := range neoRelatedContent {
 		c := relatedContent{
 			APIURL: mapper.APIURL(neoContent.UUID, []string{"Content"}, "local"),

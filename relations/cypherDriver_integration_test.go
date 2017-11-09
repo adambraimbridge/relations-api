@@ -126,13 +126,11 @@ func TestFindContentCollectionRelations_Ok(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Short flag is set. Skipping integration test")
 	}
-	expectedResponse := relations{
-		ContainedIn: []relatedContent{
-			{leadContentCP.id, leadContentCP.apiURL},
-		},
-		Contains: []relatedContent{
-			{relatedContent1.id, relatedContent1.apiURL},
-			{relatedContent2.id, relatedContent2.apiURL},
+	expectedResponse := ccRelations{
+		ContainedIn: neoRelatedContent{UUID: "3fc9fe3e-af8c-1b1b-961a-e5065392bb31"},
+		Contains: []neoRelatedContent{
+			{UUID: "3fc9fe3e-af8c-1a1a-961a-e5065392bb31"},
+			{UUID: "3fc9fe3e-af8c-2a2a-961a-e5065392bb31"},
 		},
 	}
 	conn := getDatabaseConnection(t)
@@ -148,9 +146,7 @@ func TestFindContentCollectionRelations_Ok(t *testing.T) {
 	assert.NoError(t, err, "Unexpected error for content package %s", contentPackage.uuid)
 	assert.True(t, found, "Found no relations for content package %s", contentPackage.uuid)
 
-	assert.Equal(t, len(expectedResponse.ContainedIn), len(actualRelations.ContainedIn), "Didn't get the same number of containedIn content")
-	assertListContainsAll(t, actualRelations.ContainedIn, expectedResponse.ContainedIn)
-
+	assert.Equal(t, actualRelations.ContainedIn, expectedResponse.ContainedIn)
 	assert.Equal(t, len(expectedResponse.Contains), len(actualRelations.Contains), "Didn't get the same number of content in contains")
 	assertListContainsAll(t, actualRelations.Contains, expectedResponse.Contains)
 }

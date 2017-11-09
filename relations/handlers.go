@@ -8,10 +8,7 @@ import (
 	"github.com/Financial-Times/go-fthealth/v1a"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
-	"regexp"
 )
-
-var reqPathTypeRegexp = regexp.MustCompile("^/(.*?)/")
 
 type HttpHandlers struct {
 	cypherDriver       Driver
@@ -52,7 +49,7 @@ func (hh *HttpHandlers) GoodToGo(writer http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
+func (hh *HttpHandlers) GetContentRelations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
@@ -61,29 +58,22 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	err := validateUuid(contentUUID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
 		return
 	}
 
-	nodeType := reqPathTypeRegexp.FindStringSubmatch(r.URL.Path)[1]
-	var rel relations
-	var found bool
-	if nodeType == "content" {
-		rel, found, err = hh.cypherDriver.findContentRelations(contentUUID)
-	} else if nodeType == "contentcollection" {
-		rel, found, err = hh.cypherDriver.findContentCollectionRelations(contentUUID)
-	}
+	rel, found, err := hh.cypherDriver.findContentRelations(contentUUID)
 
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
@@ -91,9 +81,9 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	}
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for %s with uuid %s", nodeType, contentUUID)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", contentUUID)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
@@ -105,7 +95,58 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.NewEncoder(w).Encode(rel); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for %s with uuid %s, err=%v", nodeType, contentUUID, err)})
+		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content with uuid %s, err=%v", contentUUID, err)})
+		w.Write([]byte(msg))
+	}
+}
+
+func (hh *HttpHandlers) GetContentCollectionRelations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	contentUUID := vars["uuid"]
+
+	err := validateUuid(contentUUID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+
+	rel, found, err := hh.cypherDriver.findContentCollectionRelations(contentUUID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+	if !found {
+		w.WriteHeader(http.StatusNotFound)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content collection with uuid %s", contentUUID)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+
+	w.Header().Set("Cache-Control", hh.cacheControlHeader)
+	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(rel); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content collection with uuid %s, err=%v", contentUUID, err)})
 		w.Write([]byte(msg))
 	}
 }

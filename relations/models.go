@@ -9,6 +9,11 @@ type relations struct {
 	ContainedIn []relatedContent `json:"containedIn,omitempty"`
 }
 
+type ccRelations struct {
+	ContainedIn neoRelatedContent `json:"containedIn,omitempty"`
+	Contains    []neoRelatedContent `json:"contains,omitempty"`
+}
+
 type relatedContent struct {
 	ID     string `json:"id,omitempty"`
 	APIURL string `json:"apiUrl,omitempty"`
