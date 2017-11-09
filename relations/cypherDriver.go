@@ -117,7 +117,7 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 	}
 
 	mappedContainedIn := transformContainedInToCCRelations(neoCPContainedIn)
-	mappedContains := transformContainsToCCRelations(neoCPContainedIn)
+	mappedContains := transformContainsToCCRelations(neoCPContains)
 	ccRelations := ccRelations{mappedContainedIn, mappedContains}
 
 	return ccRelations, found, nil
