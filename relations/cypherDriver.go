@@ -26,9 +26,9 @@ func (cd *cypherDriver) checkConnectivity() error {
 }
 
 func (cd *cypherDriver) findContentRelations(contentUUID string) (relations, bool, error) {
-	var neoCRC []neoRelatedContent
-	var neoCPContains []neoRelatedContent
-	var neoCPContainedIn []neoRelatedContent
+	neoCRC := []neoRelatedContent{}
+	neoCPContains := []neoRelatedContent{}
+	neoCPContainedIn := []neoRelatedContent{}
 
 	queryCRC := &neoism.CypherQuery{
 		Statement: `
@@ -83,8 +83,8 @@ func (cd *cypherDriver) findContentRelations(contentUUID string) (relations, boo
 }
 
 func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID string) (ccRelations, bool, error) {
-	var neoCPContainedIn []neoRelatedContent
-	var neoCPContains []neoRelatedContent
+	neoCPContainedIn := []neoRelatedContent{}
+	neoCPContains := []neoRelatedContent{}
 
 	queryCPContainedIn := &neoism.CypherQuery{
 		Statement: `
