@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type test struct {
@@ -24,8 +25,8 @@ const knownUUID = "f78c1482-a65c-413e-b753-ca3ce3cb84f0"
 const successfulContentResponse = `{"curatedRelatedContent":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}],
 "contains":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}],
 "containedIn":[{"id":"http://id-f78c1482-a65c-413e-b753-ca3ce3cb84f0", "apiUrl":"http://apiurl-f78c1482-a65c-413e-b753-ca3ce3cb84f0"}]}`
-const successfulContentCollectionResponse = `{"containedIn": {"uuid":"f78c1482-a65c-413e-b753-ca3ce3cb84f0"},
-"contains":[{"uuid":"f78c1482-a65c-413e-b753-ca3ce3cb84f0"}]}`
+const successfulContentCollectionResponse = `{"containedIn": "f78c1482-a65c-413e-b753-ca3ce3cb84f0",
+"contains":["f78c1482-a65c-413e-b753-ca3ce3cb84f0"]}`
 
 func TestGetContentRelationsHandler(t *testing.T) {
 	tests := []test{
@@ -104,8 +105,8 @@ func (cdm *cypherDriverMock) findContentCollectionRelations(contentUUID string) 
 	}
 	if contentUUID == cdm.contentUUID {
 		return ccRelations{
-			ContainedIn: neoRelatedContent{UUID: contentUUID},
-			Contains:    []neoRelatedContent{{UUID: contentUUID}},
+			ContainedIn: contentUUID,
+			Contains:    []string{contentUUID},
 		}, true, nil
 	}
 	return ccRelations{}, false, nil

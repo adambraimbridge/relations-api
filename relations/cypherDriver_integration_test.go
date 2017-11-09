@@ -3,6 +3,11 @@ package relations
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/content-collection-rw-neo4j/collection"
 	"github.com/Financial-Times/content-rw-neo4j/content"
@@ -10,10 +15,6 @@ import (
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
-	"reflect"
-	"testing"
 )
 
 type payloadData struct {
@@ -127,11 +128,8 @@ func TestFindContentCollectionRelations_Ok(t *testing.T) {
 		t.Skip("Short flag is set. Skipping integration test")
 	}
 	expectedResponse := ccRelations{
-		ContainedIn: neoRelatedContent{UUID: "3fc9fe3e-af8c-1b1b-961a-e5065392bb31"},
-		Contains: []neoRelatedContent{
-			{UUID: "3fc9fe3e-af8c-1a1a-961a-e5065392bb31"},
-			{UUID: "3fc9fe3e-af8c-2a2a-961a-e5065392bb31"},
-		},
+		ContainedIn: "3fc9fe3e-af8c-1b1b-961a-e5065392bb31",
+		Contains:    []string{"3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "3fc9fe3e-af8c-2a2a-961a-e5065392bb31"},
 	}
 	conn := getDatabaseConnection(t)
 	contents := []payloadData{leadContentCP, relatedContent1, relatedContent2}

@@ -14,3 +14,19 @@ func transformToRelatedContent(neoRelatedContent []neoRelatedContent) []relatedC
 
 	return mappedRelatedContent
 }
+
+func transformContainedInToCCRelations(containedIn []neoRelatedContent) string {
+	var leadArticleUuid string
+	if len(containedIn) != 0 {
+		leadArticleUuid = containedIn[0].UUID
+	}
+	return leadArticleUuid
+}
+
+func transformContainsToCCRelations(neoRelatedContent []neoRelatedContent) []string {
+	var contains []string
+	for _, neoContent := range neoRelatedContent {
+		contains = append(contains, neoContent.UUID)
+	}
+	return contains
+}

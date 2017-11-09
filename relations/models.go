@@ -10,8 +10,8 @@ type relations struct {
 }
 
 type ccRelations struct {
-	ContainedIn neoRelatedContent `json:"containedIn,omitempty"`
-	Contains    []neoRelatedContent `json:"contains,omitempty"`
+	ContainedIn string `json:"containedIn,omitempty"`
+	Contains    []string `json:"contains,omitempty"`
 }
 
 type relatedContent struct {
