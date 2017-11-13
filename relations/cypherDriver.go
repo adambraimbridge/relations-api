@@ -90,7 +90,6 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 		Statement: `
                 MATCH (cc:ContentCollection{uuid:{contentCollectionUUID}})<-[rel:CONTAINS]-(cp:ContentPackage)
                 RETURN cp.uuid as uuid
-                LIMIT 1
                 `,
 		Parameters: neoism.Props{"contentCollectionUUID": contentCollectionUUID},
 		Result:     &neoCPContainedIn,
@@ -112,7 +111,7 @@ func (cd *cypherDriver) findContentCollectionRelations(contentCollectionUUID str
 	}
 
 	var found bool
-	if len(neoCPContains) != 0 || len(neoCPContainedIn) != 0 {
+	if len(neoCPContainedIn) != 0 {
 		found = true
 	}
 
