@@ -2,7 +2,10 @@
 [![Coverage Status](https://coveralls.io/repos/github/Financial-Times/relations-api/badge.svg)](https://coveralls.io/github/Financial-Times/relations-api)
 # relations-api
 
-Relations Api is an internally used API for retrieving content collection content, that is content of curated relations or contains relations for a given content.
+Relations Api is an internally used API for retrieving content collection related content.
+That is:
+- content of CURATED relations
+- content of CONTAINS relations for a given content or content collection (content package)
 
 ## Usage
 ### Install
@@ -34,6 +37,7 @@ ge value to '7440' seconds ($CACHE_DURATION)
 ### Application specific endpoints:
 
 * /content/{uuid}/relations
+* /contentcollection/{uuid}/relations
 
 ### Admin specific endpoints:
 
@@ -44,7 +48,9 @@ ge value to '7440' seconds ($CACHE_DURATION)
 * /__health
 * /__gtg
 
-## Example
+## Examples
+
+#### For /content/{uuid}/relations endpoint:
 
 `GET https://pre-prod-uk-up.ft.com/__relations-api/content/9b6eb364-0275-11e7-b9ac-52b4e2bf8289/relations`
 
@@ -54,6 +60,27 @@ ge value to '7440' seconds ($CACHE_DURATION)
            "id": "http://api.ft.com/things/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90",
            "apiUrl": "http://api.ft.com/content/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90"
            }]
+        "contains": [{
+           "id": "http://api.ft.com/things/74bd05b4-edca-11e6-1234-ee7d9c5b3b90",
+           "apiUrl": "http://api.ft.com/content/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90"
+           },
+           {
+           "id": "http://api.ft.com/things/74bd05b4-edca-11e6-1313-ee7d9c5b3b90",
+           "apiUrl": "http://api.ft.com/content/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90"
+           }]
+        "containedIn": [{
+           "id": "http://api.ft.com/things/74bd05b4-adsd-1342-abbc-ee7d9c5b3b90",
+           "apiUrl": "http://api.ft.com/content/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90"
+           }]
+   }
+```
+
+#### For /contentcollection/{uuid}/relations endpoint (for content package):
+
+`GET https://pre-prod-uk-up.ft.com/__relations-api/content/9b6eb364-0275-11e7-b9ac-52b4e2bf8289/relations`
+
+```
+{
         "contains": [{
            "id": "http://api.ft.com/things/74bd05b4-edca-11e6-1234-ee7d9c5b3b90",
            "apiUrl": "http://api.ft.com/content/74bd05b4-edca-11e6-abbc-ee7d9c5b3b90"
