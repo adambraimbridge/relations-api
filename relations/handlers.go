@@ -11,7 +11,7 @@ import (
 )
 
 type HttpHandlers struct {
-	relationsDriver    Driver
+	cypherDriver       Driver
 	cacheControlHeader string
 }
 
@@ -19,8 +19,8 @@ type ErrorMessage struct {
 	Message string `json:"message"`
 }
 
-func NewHttpHandlers(relationsDriver Driver, cacheControlHeader string) HttpHandlers {
-	return HttpHandlers{relationsDriver, cacheControlHeader}
+func NewHttpHandlers(cypherDriver Driver, cacheControlHeader string) HttpHandlers {
+	return HttpHandlers{cypherDriver, cacheControlHeader}
 }
 
 func (hh *HttpHandlers) HealthCheck(neoURL string) v1a.Check {
@@ -35,43 +35,45 @@ func (hh *HttpHandlers) HealthCheck(neoURL string) v1a.Check {
 }
 
 func (hh *HttpHandlers) Checker() (string, error) {
-	err := hh.relationsDriver.checkConnectivity()
-	if err == nil {
-		return "Connectivity to Neo4j is ok", err
+	err := hh.cypherDriver.checkConnectivity()
+	if err != nil {
+		return "Error connecting to Neo4j", err
 	}
-	return "Error connecting to Neo4j", err
+
+	return "Connectivity to Neo4j is ok", err
 }
 
 func (hh *HttpHandlers) GoodToGo(writer http.ResponseWriter, req *http.Request) {
 	if _, err := hh.Checker(); err != nil {
 		writer.WriteHeader(http.StatusServiceUnavailable)
 	}
-
 }
 
-func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
+func (hh *HttpHandlers) GetContentRelations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
-
 	contentUUID := vars["uuid"]
+
 	err := validateUuid(contentUUID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
 		return
 	}
-	relations, found, err := hh.relationsDriver.read(contentUUID)
+
+	rel, found, err := hh.cypherDriver.findContentRelations(contentUUID)
+
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
@@ -79,9 +81,9 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	}
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
-		msg, errm := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", contentUUID)})
-		if errm != nil {
-			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", errm.Error())))
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content with uuid %s", contentUUID)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
 		} else {
 			w.Write([]byte(msg))
 		}
@@ -91,9 +93,60 @@ func (hh *HttpHandlers) GetRelations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", hh.cacheControlHeader)
 	w.WriteHeader(http.StatusOK)
 
-	if err = json.NewEncoder(w).Encode(relations); err != nil {
+	if err = json.NewEncoder(w).Encode(rel); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content with uuid %s, err=%v", contentUUID, err)})
+		w.Write([]byte(msg))
+	}
+}
+
+func (hh *HttpHandlers) GetContentCollectionRelations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	contentUUID := vars["uuid"]
+
+	err := validateUuid(contentUUID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("The given uuid is not valid, err=%v", err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+
+	rel, found, err := hh.cypherDriver.findContentCollectionRelations(contentUUID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("Error retrieving relations for %s, err=%v", contentUUID, err)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+	if !found {
+		w.WriteHeader(http.StatusNotFound)
+		msg, jsonErr := json.Marshal(ErrorMessage{fmt.Sprintf("No relations found for content collection with uuid %s", contentUUID)})
+		if jsonErr != nil {
+			w.Write([]byte(fmt.Sprintf("Error message couldn't be encoded in json: , err=%s", jsonErr.Error())))
+		} else {
+			w.Write([]byte(msg))
+		}
+		return
+	}
+
+	w.Header().Set("Cache-Control", hh.cacheControlHeader)
+	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(rel); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg, _ := json.Marshal(ErrorMessage{fmt.Sprintf("Error parsing result for content collection with uuid %s, err=%v", contentUUID, err)})
 		w.Write([]byte(msg))
 	}
 }

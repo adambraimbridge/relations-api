@@ -3,6 +3,11 @@ package relations
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	"github.com/Financial-Times/content-collection-rw-neo4j/collection"
 	"github.com/Financial-Times/content-rw-neo4j/content"
@@ -10,10 +15,6 @@ import (
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
-	"reflect"
-	"testing"
 )
 
 type payloadData struct {
@@ -25,23 +26,23 @@ type payloadData struct {
 
 var (
 	leadContentSP = payloadData{"3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "./fixtures/Content-with-SP-3fc9fe3e-af8c-4a4a-961a-e5065392bb31.json",
-		"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
+								"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
 	leadContentCP = payloadData{"3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "./fixtures/Content-with-CP-3fc9fe3e-af8c-1b1b-961a-e5065392bb31.json",
-		"http://api.ft.com/things/3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1b1b-961a-e5065392bb31"}
+								"http://api.ft.com/things/3fc9fe3e-af8c-1b1b-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1b1b-961a-e5065392bb31"}
 	relatedContent1 = payloadData{"3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-1a1a-961a-e5065392bb31.json",
-		"http://api.ft.com/things/3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1a1a-961a-e5065392bb31"}
+								  "http://api.ft.com/things/3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-1a1a-961a-e5065392bb31"}
 	relatedContent2 = payloadData{"3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-2a2a-961a-e5065392bb31.json",
-		"http://api.ft.com/things/3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-2a2a-961a-e5065392bb31"}
+								  "http://api.ft.com/things/3fc9fe3e-af8c-2a2a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-2a2a-961a-e5065392bb31"}
 	relatedContent3 = payloadData{"3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "./fixtures/Content-3fc9fe3e-af8c-3a3a-961a-e5065392bb31.json",
-		"http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
+								  "http://api.ft.com/things/3fc9fe3e-af8c-3a3a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-3a3a-961a-e5065392bb31"}
 	storyPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/StoryPackage-63559ba7-b48d-4467-b2b0-ce956f9e9494.json",
-		"", ""}
-	contentPackage = payloadData{"63559ba7-b48d-4467-b2b0-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
-		"", ""}
+							   "", ""}
+	contentPackage = payloadData{"63559ba7-b48d-4467-1b1b-ce956f9e9494", "./fixtures/ContentPackage-63559ba7-b48d-4467-1b1b-ce956f9e9494.json",
+								 "", ""}
 	allData = []payloadData{leadContentSP, leadContentCP, relatedContent1, relatedContent2, relatedContent3, storyPackage, contentPackage}
 )
 
-func TestRetrieveCuratedRelatedContent(t *testing.T) {
+func TestFindContentRelations_StoryPackage_Ok(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Short flag is set. Skipping integration test")
 	}
@@ -61,14 +62,15 @@ func TestRetrieveCuratedRelatedContent(t *testing.T) {
 	defer cleanDB(t, conn, allData)
 
 	driver := NewCypherDriver(conn)
-	actualCRC, found, err := driver.read(leadContentSP.uuid)
+	actualRelations, found, err := driver.findContentRelations(leadContentSP.uuid)
 	assert.NoError(t, err, "Unexpected error for content %s", leadContentSP.uuid)
 	assert.True(t, found, "Found no relations for content %s", leadContentSP.uuid)
-	assert.Equal(t, len(expectedResponse.CuratedRelatedContents), len(actualCRC.CuratedRelatedContents), "Didn't get the same number of curated related content")
-	assertListContainsAll(t, actualCRC.CuratedRelatedContents, expectedResponse.CuratedRelatedContents)
+
+	assert.Equal(t, len(expectedResponse.CuratedRelatedContents), len(actualRelations.CuratedRelatedContents), "Didn't get the same number of curated related content")
+	assertListContainsAll(t, actualRelations.CuratedRelatedContents, expectedResponse.CuratedRelatedContents)
 }
 
-func TestRetrieveContainsContent(t *testing.T) {
+func TestFindContentRelations_ContentPackage_Ok(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Short flag is set. Skipping integration test")
 	}
@@ -87,14 +89,15 @@ func TestRetrieveContainsContent(t *testing.T) {
 	defer cleanDB(t, conn, allData)
 
 	driver := NewCypherDriver(conn)
-	actualResponse, found, err := driver.read(leadContentCP.uuid)
+	actualRelations, found, err := driver.findContentRelations(leadContentCP.uuid)
 	assert.NoError(t, err, "Unexpected error for content %s", leadContentCP.uuid)
 	assert.True(t, found, "Found no relations for content %s", leadContentCP.uuid)
-	assert.Equal(t, len(expectedResponse.Contains), len(actualResponse.Contains), "Didn't get the same number of content in contains")
-	assertListContainsAll(t, actualResponse.Contains, expectedResponse.Contains)
+
+	assert.Equal(t, len(expectedResponse.Contains), len(actualRelations.Contains), "Didn't get the same number of content in contains")
+	assertListContainsAll(t, actualRelations.Contains, expectedResponse.Contains)
 }
 
-func TestRetrieveContainedInContent(t *testing.T) {
+func TestFindContentRelations_Content_In_ContentPackage_Ok(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Short flag is set. Skipping integration test")
 	}
@@ -112,11 +115,38 @@ func TestRetrieveContainedInContent(t *testing.T) {
 	defer cleanDB(t, conn, allData)
 
 	driver := NewCypherDriver(conn)
-	actualResponse, found, err := driver.read(relatedContent2.uuid)
-	assert.NoError(t, err, "Unexpected error for content %s", relatedContent2.uuid)
-	assert.True(t, found, "Found no relations for content %s", relatedContent2.uuid)
-	assert.Equal(t, len(expectedResponse.ContainedIn), len(actualResponse.ContainedIn), "Didn't get the same number of containedIn content")
-	assertListContainsAll(t, actualResponse.ContainedIn, expectedResponse.ContainedIn)
+	actualRelations, found, err := driver.findContentRelations(relatedContent1.uuid)
+	assert.NoError(t, err, "Unexpected error for content %s", relatedContent1.uuid)
+	assert.True(t, found, "Found no relations for content %s", relatedContent1.uuid)
+
+	assert.Equal(t, len(expectedResponse.ContainedIn), len(actualRelations.ContainedIn), "Didn't get the same number of containedIn content")
+	assertListContainsAll(t, actualRelations.ContainedIn, expectedResponse.ContainedIn)
+}
+
+func TestFindContentCollectionRelations_Ok(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Short flag is set. Skipping integration test")
+	}
+	expectedResponse := ccRelations{
+		ContainedIn: "3fc9fe3e-af8c-1b1b-961a-e5065392bb31",
+		Contains:    []string{"3fc9fe3e-af8c-1a1a-961a-e5065392bb31", "3fc9fe3e-af8c-2a2a-961a-e5065392bb31"},
+	}
+	conn := getDatabaseConnection(t)
+	contents := []payloadData{leadContentCP, relatedContent1, relatedContent2}
+	cleanDB(t, conn, allData)
+
+	writeContent(t, conn, contents)
+	writeContentCollection(t, conn, []payloadData{contentPackage}, "ContentPackage")
+	defer cleanDB(t, conn, allData)
+
+	driver := NewCypherDriver(conn)
+	actualRelations, found, err := driver.findContentCollectionRelations(contentPackage.uuid)
+	assert.NoError(t, err, "Unexpected error for content package %s", contentPackage.uuid)
+	assert.True(t, found, "Found no relations for content package %s", contentPackage.uuid)
+
+	assert.Equal(t, actualRelations.ContainedIn, expectedResponse.ContainedIn)
+	assert.Equal(t, len(expectedResponse.Contains), len(actualRelations.Contains), "Didn't get the same number of content in contains")
+	assertListContainsAll(t, actualRelations.Contains, expectedResponse.Contains)
 }
 
 func writeContent(t testing.TB, conn neoutils.NeoConnection, data []payloadData) baseftrwapp.Service {
@@ -135,6 +165,7 @@ func writeContentCollection(t testing.TB, conn neoutils.NeoConnection, data []pa
 		labels = []string{"Curation", "StoryPackage"}
 		relation = "SELECTS"
 	}
+
 	contentCollectionRW := collection.NewContentCollectionService(conn, labels, relation)
 	assert.NoError(t, contentCollectionRW.Initialise())
 	for _, d := range data {

@@ -1,10 +1,9 @@
 package relations
 
 import (
-	"testing"
-
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var givenNeoRelatedContent []neoRelatedContent = []neoRelatedContent{
@@ -18,9 +17,7 @@ var expectedRelatedContent []relatedContent = []relatedContent{
 }
 
 func TestTransformToRelatedContentHappyFlow(t *testing.T) {
-	cd := NewCypherDriver(nil)
-
-	relatedContent := cd.transformToRelatedContent(givenNeoRelatedContent)
+	relatedContent := transformToRelatedContent(givenNeoRelatedContent)
 
 	expected, _ := json.Marshal(expectedRelatedContent)
 	actual, _ := json.Marshal(relatedContent)
@@ -28,11 +25,10 @@ func TestTransformToRelatedContentHappyFlow(t *testing.T) {
 }
 
 func TestTransformToRelatedContentNoRelations(t *testing.T) {
-	cd := NewCypherDriver(nil)
 	givenNeoRelatedContent := []neoRelatedContent{}
 	expectedRelatedContent := []neoRelatedContent{}
 
-	relatedContent := cd.transformToRelatedContent(givenNeoRelatedContent)
+	relatedContent := transformToRelatedContent(givenNeoRelatedContent)
 
 	expected, _ := json.Marshal(expectedRelatedContent)
 	actual, _ := json.Marshal(relatedContent)
