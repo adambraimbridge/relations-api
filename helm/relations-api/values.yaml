@@ -9,5 +9,7 @@ image:
   repository: coco/relations-api
   pullPolicy: IfNotPresent
 resources:
+  requests:
+    memory: 32Mi
   limits:
-    memory: 256Mi
+    memory: 128Mi

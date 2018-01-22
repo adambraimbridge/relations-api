@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
-	"github.com/Financial-Times/go-fthealth/v1a"
+	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
 	"github.com/Financial-Times/relations-api/relations"
@@ -96,13 +96,21 @@ func runServer(neoURL string, port string, cacheDuration string) {
 	// The following endpoints should not be monitored or logged (varnish calls one of these every second, depending on config)
 	// The top one of these build info endpoints feels more correct, but the lower one matches what we have in Dropwizard,
 	// so it's what apps expect currently same as ping, the content of build-info needs more definition
-	http.HandleFunc("/__health", v1a.Handler("RelationsApi Healthchecks",
-		"Checks for accessing neo4j", httpHandlers.HealthCheck(neoURL)))
+	healthCheck := fthealth.TimedHealthCheck{
+		HealthCheck: fthealth.HealthCheck{
+			SystemCode: "upp-relations-api",
+			Name: "RelationsApi Healthchecks",
+			Description: "Checks for accessing neo4j",
+			Checks: []fthealth.Check{httpHandlers.HealthCheck(neoURL)},
+		},
+		Timeout: 10 * time.Second,
+	}
+	http.HandleFunc("/__health", fthealth.Handler(healthCheck))
 	http.HandleFunc(status.PingPath, status.PingHandler)
 	http.HandleFunc(status.PingPathDW, status.PingHandler)
 	http.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 	http.HandleFunc(status.BuildInfoPathDW, status.BuildInfoHandler)
-	http.HandleFunc("/__gtg", httpHandlers.GoodToGo)
+	http.HandleFunc("/__gtg", status.NewGoodToGoHandler(httpHandlers.GTG))
 
 	http.Handle("/", router(httpHandlers))
 

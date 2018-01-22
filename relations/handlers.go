@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Financial-Times/go-fthealth/v1a"
+	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+	"github.com/Financial-Times/service-status-go/gtg"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
 )
@@ -23,8 +24,8 @@ func NewHttpHandlers(cypherDriver Driver, cacheControlHeader string) HttpHandler
 	return HttpHandlers{cypherDriver, cacheControlHeader}
 }
 
-func (hh *HttpHandlers) HealthCheck(neoURL string) v1a.Check {
-	return v1a.Check{
+func (hh *HttpHandlers) HealthCheck(neoURL string) fthealth.Check {
+	return fthealth.Check{
 		BusinessImpact:   "Unable to respond to Relations API requests",
 		Name:             "Check connectivity to Neo4j",
 		PanicGuide:       "https://dewey.ft.com/upp-relations-api.html",
@@ -43,10 +44,19 @@ func (hh *HttpHandlers) Checker() (string, error) {
 	return "Connectivity to Neo4j is ok", err
 }
 
-func (hh *HttpHandlers) GoodToGo(writer http.ResponseWriter, req *http.Request) {
-	if _, err := hh.Checker(); err != nil {
-		writer.WriteHeader(http.StatusServiceUnavailable)
+func (hh *HttpHandlers) GTG() gtg.Status {
+	statusCheck := func() gtg.Status {
+		return gtgCheck(hh.Checker)
 	}
+
+	return gtg.FailFastParallelCheck([]gtg.StatusChecker{statusCheck})()
+}
+
+func gtgCheck(handler func() (string, error)) gtg.Status {
+	if _, err := handler(); err != nil {
+		return gtg.Status{GoodToGo: false, Message: err.Error()}
+	}
+	return gtg.Status{GoodToGo: true}
 }
 
 func (hh *HttpHandlers) GetContentRelations(w http.ResponseWriter, r *http.Request) {
