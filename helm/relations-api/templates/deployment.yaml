@@ -40,7 +40,7 @@ spec:
             configMapKeyRef: 
               name: global-config 
               key: neo4j.read.only.url
-            ports:
+        ports:
         - containerPort: 8080 
         livenessProbe: 
           tcpSocket: 
