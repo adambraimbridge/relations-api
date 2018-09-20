@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Financial-Times/base-ft-rw-app-go/baseftrwapp"
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
@@ -32,24 +31,6 @@ func main() {
 		Desc:   "Port to listen on",
 		EnvVar: "PORT",
 	})
-	graphiteTCPAddress := app.String(cli.StringOpt{
-		Name:   "graphiteTCPAddress",
-		Value:  "",
-		Desc:   "Graphite TCP address, e.g. graphite.ft.com:2003. Leave as default if you do NOT want to output to graphite (e.g. if running locally)",
-		EnvVar: "GRAPHITE_ADDRESS",
-	})
-	graphitePrefix := app.String(cli.StringOpt{
-		Name:   "graphitePrefix",
-		Value:  "",
-		Desc:   "Prefix to use. Should start with content, include the environment, and the host name. e.g. coco.pre-prod.public-things-api.1",
-		EnvVar: "GRAPHITE_PREFIX",
-	})
-	logMetrics := app.Bool(cli.BoolOpt{
-		Name:   "logMetrics",
-		Value:  false,
-		Desc:   "Whether to log metrics. Set to true if running locally and you want metrics output",
-		EnvVar: "LOG_METRICS",
-	})
 	cacheDuration := app.String(cli.StringOpt{
 		Name:   "cache-duration",
 		Value:  "30s",
@@ -58,7 +39,6 @@ func main() {
 	})
 
 	app.Action = func() {
-		baseftrwapp.OutputMetricsIfRequired(*graphiteTCPAddress, *graphitePrefix, *logMetrics)
 		log.Infof("relations-api will listen on port: %s, connecting to: %s", *port, *neoURL)
 		runServer(*neoURL, *port, *cacheDuration)
 	}
@@ -98,10 +78,10 @@ func runServer(neoURL string, port string, cacheDuration string) {
 	// so it's what apps expect currently same as ping, the content of build-info needs more definition
 	healthCheck := fthealth.TimedHealthCheck{
 		HealthCheck: fthealth.HealthCheck{
-			SystemCode: "upp-relations-api",
-			Name: "RelationsApi Healthchecks",
+			SystemCode:  "upp-relations-api",
+			Name:        "RelationsApi Healthchecks",
 			Description: "Checks for accessing neo4j",
-			Checks: []fthealth.Check{httpHandlers.HealthCheck(neoURL)},
+			Checks:      []fthealth.Check{httpHandlers.HealthCheck(neoURL)},
 		},
 		Timeout: 10 * time.Second,
 	}

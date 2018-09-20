@@ -22,12 +22,6 @@ Usage: relations-api [OPTIONS]
 Options:
   --neo-url="http://localhost:7474/db/data"   neo4j endpoint URL ($NEO_URL)
   --port="8080"                               Port to listen on ($PORT)
-  --graphiteTCPAddress=""                     Graphite TCP address, e.g. graphite.ft.com:2003. Leave as default if you d
-o NOT want to output to graphite (e.g. if running locally) ($GRAPHITE_ADDRESS)
-  --graphitePrefix=""                         Prefix to use. Should start with content, include the environment, and the
- host name. e.g. coco.pre-prod.public-things-api.1 ($GRAPHITE_PREFIX)
-  --logMetrics=false                          Whether to log metrics. Set to true if running locally and you want metric
-s output ($LOG_METRICS)
   --cache-duration="30s"                      Duration Get requests should be cached for. e.g. 2h45m would set the max-a
 ge value to '7440' seconds ($CACHE_DURATION)
 ```
