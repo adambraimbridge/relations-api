@@ -13,8 +13,7 @@ That is:
 
 ## Running locally
 To run the service locally, you will need to run the following commands first to get the vendored dependencies for this project:
-  `go get github.com/kardianos/govendor` and
-  `govendor sync`
+  `dep ensure -vendor-only`
 
 ```
 Usage: relations-api [OPTIONS]

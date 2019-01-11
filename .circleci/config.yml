@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.7
+      - image: circleci/golang:1.11
       - image: neo4j:3.1.0-enterprise
         environment:
           NEO4J_AUTH: none
@@ -21,14 +21,17 @@ jobs:
           name: Make go get work
           command: sudo chown -R circleci:circleci /go/src
       - run:
-          name: Create test folder
-          command: mkdir -p $CIRCLE_TEST_REPORTS
+          name: Create test folders
+          command: 
+            mkdir -p $CIRCLE_TEST_REPORTS
+            mkdir -p $CIRCLE_TEST_REPORTS/golang
+            mkdir -p $CIRCLE_ARTIFACTS
       - run: |
-          go get -u github.com/kardianos/govendor
+          name: Download vendored dependencies
+          command: dep ensure -v -vendor-only
       - run: |
-          govendor sync
-      - run: |
-          go build -v
+          name: Go Build
+          command: go build -v
       - run:
           wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
       - run: |
@@ -36,12 +39,13 @@ jobs:
           go get -u github.com/mattn/goveralls
           wget https://raw.githubusercontent.com/Financial-Times/cookiecutter-upp-golang/master/coverage.sh && chmod +x coverage.sh
       - run: |
-          mkdir -p $CIRCLE_TEST_REPORTS/golang
-          mkdir -p $CIRCLE_ARTIFACTS
-          govendor test -race -v +local | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
-          ./coverage.sh
+          name: Run tests
+          command: 
+            go test -race | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
+            ./coverage.sh
       - run: |
-          goveralls -coverprofile=$CIRCLE_ARTIFACTS/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          name: Upload coverage
+          command: goveralls -coverprofile=$CIRCLE_ARTIFACTS/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - store_test_results:
           path: /tmp/test-reports
 
