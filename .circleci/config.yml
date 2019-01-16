@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Run tests
           command:
-            go test -race | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
+            go test -race ./... | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
             ./coverage.sh
       - run:
           name: Upload coverage
