@@ -24,6 +24,16 @@ type payloadData struct {
 	apiURL string
 }
 
+type collectionService interface {
+	DecodeJSON(dec *json.Decoder) (interface{}, string, error)
+	Write(newThing interface{}) error
+}
+
+type contentService interface {
+	Write(thing interface{}, transId string) error
+	DecodeJSON(dec *json.Decoder) (interface{}, string, error)
+}
+
 var (
 	leadContentSP = payloadData{"3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "./fixtures/Content-with-SP-3fc9fe3e-af8c-4a4a-961a-e5065392bb31.json",
 		"http://api.ft.com/things/3fc9fe3e-af8c-4a4a-961a-e5065392bb31", "http://api.ft.com/content/3fc9fe3e-af8c-4a4a-961a-e5065392bb31"}
@@ -173,7 +183,7 @@ func writeContentCollection(t testing.TB, conn neoutils.NeoConnection, data []pa
 	}
 }
 
-func writeJSONWithService(t testing.TB, service baseftrwapp.Service, pathToJSONFile string) {
+func writeJSONWithService(t testing.TB, service contentService, pathToJSONFile string) {
 	path, err := filepath.Abs(pathToJSONFile)
 	require.NoError(t, err)
 	f, err := os.Open(path)
@@ -183,11 +193,11 @@ func writeJSONWithService(t testing.TB, service baseftrwapp.Service, pathToJSONF
 	dec := json.NewDecoder(f)
 	inst, _, err := service.DecodeJSON(dec)
 	require.NoError(t, err)
-	err = service.Write(inst)
+	err = service.Write(inst, "TEST_TRANSACTION_ID")
 	require.NoError(t, err)
 }
 
-func writeJSONWithContentCollectionService(t testing.TB, service baseftrwapp.Service, pathToJSONFile string) {
+func writeJSONWithContentCollectionService(t testing.TB, service collectionService, pathToJSONFile string) {
 	path, err := filepath.Abs(pathToJSONFile)
 	require.NoError(t, err)
 	f, err := os.Open(path)

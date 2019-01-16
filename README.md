@@ -25,6 +25,18 @@ Options:
 ge value to '7440' seconds ($CACHE_DURATION)
 ```
 
+### Run tests
+
+Start Neo4J:
+```
+docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none neo4j:3.2.7-enterprise
+```
+
+Execute:
+```
+go test ./...
+```
+
 ## Endpoints
 
 ### Application specific endpoints:
