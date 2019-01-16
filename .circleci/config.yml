@@ -22,14 +22,14 @@ jobs:
           command: sudo chown -R circleci:circleci /go/src
       - run:
           name: Create test folders
-          command: 
+          command:
             mkdir -p $CIRCLE_TEST_REPORTS
             mkdir -p $CIRCLE_TEST_REPORTS/golang
             mkdir -p $CIRCLE_ARTIFACTS
-      - run: |
+      - run:
           name: Download vendored dependencies
           command: dep ensure -v -vendor-only
-      - run: |
+      - run:
           name: Go Build
           command: go build -v
       - run:
@@ -38,12 +38,12 @@ jobs:
           go get -u github.com/jstemmer/go-junit-report
           go get -u github.com/mattn/goveralls
           wget https://raw.githubusercontent.com/Financial-Times/cookiecutter-upp-golang/master/coverage.sh && chmod +x coverage.sh
-      - run: |
+      - run:
           name: Run tests
-          command: 
+          command:
             go test -race | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
             ./coverage.sh
-      - run: |
+      - run:
           name: Upload coverage
           command: goveralls -coverprofile=$CIRCLE_ARTIFACTS/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - store_test_results:
