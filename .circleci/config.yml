@@ -12,6 +12,7 @@ jobs:
     working_directory: /go/src/github.com/Financial-Times/relations-api
     environment:
           NEO4J_TEST_URL: "http://localhost:7474/db/data/"
+          CIRCLE_COVERAGE_REPORTS: "/tmp/coverage-results"
           CIRCLE_TEST_REPORTS: /tmp/test-reports
           CIRCLE_ARTIFACTS: /tmp/artifacts
 
@@ -26,6 +27,7 @@ jobs:
             mkdir -p $CIRCLE_TEST_REPORTS
             mkdir -p $CIRCLE_TEST_REPORTS/golang
             mkdir -p $CIRCLE_ARTIFACTS
+            mkdir -p $CIRCLE_COVERAGE_REPORTS
       - run:
           name: Download vendored dependencies
           command: dep ensure -v -vendor-only
@@ -40,12 +42,10 @@ jobs:
           wget https://raw.githubusercontent.com/Financial-Times/cookiecutter-upp-golang/master/coverage.sh && chmod +x coverage.sh
       - run:
           name: Run tests
-          command:
-            go test -race ./... | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
-            ./coverage.sh
+          command: go test -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORTS}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
       - run:
           name: Upload coverage
-          command: goveralls -coverprofile=$CIRCLE_ARTIFACTS/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORTS}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
       - store_test_results:
           path: /tmp/test-reports
 
