@@ -33,7 +33,7 @@ jobs:
           command: dep ensure -v -vendor-only
       - run:
           name: Go Build
-          command: go build -v
+          command: go build
       - run:
           wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
       - run: |
