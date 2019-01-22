@@ -13,8 +13,7 @@ That is:
 
 ## Running locally
 To run the service locally, you will need to run the following commands first to get the vendored dependencies for this project:
-  `go get github.com/kardianos/govendor` and
-  `govendor sync`
+  `dep ensure -vendor-only`
 
 ```
 Usage: relations-api [OPTIONS]
@@ -24,6 +23,18 @@ Options:
   --port="8080"                               Port to listen on ($PORT)
   --cache-duration="30s"                      Duration Get requests should be cached for. e.g. 2h45m would set the max-a
 ge value to '7440' seconds ($CACHE_DURATION)
+```
+
+### Run tests
+
+Start Neo4J:
+```
+docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none neo4j:3.2.7-enterprise
+```
+
+Execute:
+```
+go test ./...
 ```
 
 ## Endpoints
