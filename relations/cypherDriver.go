@@ -22,6 +22,10 @@ func NewCypherDriver(conn neoutils.NeoConnection) *cypherDriver {
 }
 
 func (cd *cypherDriver) checkConnectivity() error {
+	writableErr := neoutils.CheckWritable(cd.conn)
+	if writableErr != nil {
+		return writableErr
+	}
 	return neoutils.Check(cd.conn)
 }
 
