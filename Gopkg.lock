@@ -71,6 +71,7 @@
   packages = ["neoutils"]
   pruneopts = "UT"
   revision = "1fe6ae2f38f38429be7b7d37252db41df5576cdd"
+  version = "1.0.4"
 
 [[projects]]
   digest = "1:38fb8b63808d960f6982ff7c1a23ba4cf6dd0e47d35bf66d9e24c37e86a9b40b"

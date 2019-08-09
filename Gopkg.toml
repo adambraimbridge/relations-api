@@ -55,7 +55,7 @@
 
 [[constraint]]
   name = "github.com/Financial-Times/neo-utils-go"
-  revision = "1fe6ae2f38f38429be7b7d37252db41df5576cdd"
+   version = "=1.0.4"
 
 [[constraint]]
   name = "github.com/Financial-Times/service-status-go"
