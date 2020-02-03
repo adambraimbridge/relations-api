@@ -1,56 +1,21 @@
 version: 2.1
-jobs:
-  build:
-    working_directory: /go/src/github.com/Financial-Times/relations-api
-    docker:
-      - image: golang:1
-        environment:
-          CIRCLE_TEST_REPORTS: /tmp/test-results
-          CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
-          GO111MODULE: "on"
-      - image: neo4j:3.4.10-enterprise
-        environment:
-          NEO4J_AUTH: none
-          NEO4J_HEAP_MEMORY: 256
-          NEO4J_CACHE_MEMORY: 256M
-          NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
 
-    environment:
-      NEO4J_TEST_URL: "http://localhost:7474/db/data/"
-      CIRCLE_COVERAGE_REPORTS: "/tmp/coverage-results"
-      CIRCLE_TEST_REPORTS: /tmp/test-reports
-      CIRCLE_ARTIFACTS: /tmp/artifacts
+orbs:
+  ft-golang-ci: financial-times/golang-ci@1.0.0
 
-    steps:
-      - checkout
-      - run:
-          name: External dependencies
-          command: |
-            GO111MODULE=off go get -u github.com/mattn/goveralls
-            GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-            git clone git@github.com:Financial-Times/upp-coding-standard.git
-      - run:
-          name: Make result folders
-          command: |
-            mkdir -p ${CIRCLE_TEST_REPORTS}
-            mkdir -p ${CIRCLE_COVERAGE_REPORT}
-      - run:
-          name: Go build
-          command: go build -mod=readonly  -v
-      - run:
-          name: Run linters
-          command: |
-            golangci-lint run --new-from-rev=master --config upp-coding-standard/golangci-config/.golangci.yml
-      - run:
-          name: Run tests
-          command: go test -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
-      - run:
-          name: Upload coverage
-          command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
-      - store_test_results:
-          path: /tmp/test-results
+workflows:
+  tests_and_docker:
+    jobs:
+      - ft-golang-ci/build-and-test:
+          name: build-and-test-project
+          executor-name: ft-golang-ci/default-with-neo4j
 
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: build
+      - ft-golang-ci/docker-build:
+          name: build-docker-image
+          requires:
+            - build-and-test-project
+  snyk-scanning:
+    jobs:
+      - ft-golang-ci/scan:
+          name: scan-dependencies
+          context: org-global
