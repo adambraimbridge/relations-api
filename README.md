@@ -1,41 +1,57 @@
 [![CircleCI](https://circleci.com/gh/Financial-Times/relations-api/tree/master.png?style=shield)](https://circleci.com/gh/Financial-Times/relations-api/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/Financial-Times/relations-api/badge.svg)](https://coveralls.io/github/Financial-Times/relations-api)
-# relations-api
 
-Relations Api is an internally used API for retrieving content collection related content.
+# Relations API
+
+Relations API is an internally used API for retrieving content collection related content.
 That is:
 - content of CURATED relations
 - content of CONTAINS relations for a given content or content collection (content package)
 
 ## Usage
+
 ### Install
-`go get -u github.com/Financial-Times/relations-api`
 
-## Running locally
-To run the service locally, you will need to run the following commands first to get the vendored dependencies for this project:
-  `dep ensure -vendor-only`
+Download the source code, dependencies and build the binary:
 
+```shell script
+go get github.com/Financial-Times/relations-api
+cd $GOPATH/src/github.com/Financial-Times/relations-api
+go install
 ```
-Usage: relations-api [OPTIONS]
+
+### Tests
+
+Start Neo4J:
+
+```shell script
+docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none neo4j:3.4.10-enterprise
+```
+
+Execute test:
+
+```shell script
+go test -mod=readonly -race ./...
+```
+
+### Running locally
+
+Run the binary (using the help flag to see the available optional arguments):
+
+```shell script
+$GOPATH/bin/relations-api [--help]
+```
 
 Options:
+
+```shell script
   --neo-url="http://localhost:7474/db/data"   neo4j endpoint URL ($NEO_URL)
   --port="8080"                               Port to listen on ($PORT)
   --cache-duration="30s"                      Duration Get requests should be cached for. e.g. 2h45m would set the max-a
 ge value to '7440' seconds ($CACHE_DURATION)
 ```
 
-### Run tests
 
-Start Neo4J:
-```
-docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none neo4j:3.2.7-enterprise
-```
-
-Execute:
-```
-go test ./...
-```
 
 ## Endpoints
 
