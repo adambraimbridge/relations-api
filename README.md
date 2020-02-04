@@ -25,7 +25,7 @@ go install
 Start Neo4J:
 
 ```shell script
-docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none neo4j:3.4.10-enterprise
+docker run --publish=7474:7474 --publish=7687:7687 -e NEO4J_AUTH=none -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes neo4j:3.4.10-enterprise
 ```
 
 Execute test:
