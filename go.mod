@@ -1,4 +1,4 @@
-module github.com/Financial-Times/relations-api
+module github.com/Financial-Times/relations-api/v3
 
 go 1.13
 
