@@ -1,54 +1,21 @@
-version: 2
-jobs:
-  build:
-    docker:
-      - image: circleci/golang:1.11
-      - image: neo4j:3.1.0-enterprise
-        environment:
-          NEO4J_AUTH: none
-          NEO4J_HEAP_MEMORY: 256
-          NEO4J_CACHE_MEMORY: 256M
+version: 2.1
 
-    working_directory: /go/src/github.com/Financial-Times/relations-api
-    environment:
-          NEO4J_TEST_URL: "http://localhost:7474/db/data/"
-          CIRCLE_COVERAGE_REPORTS: "/tmp/coverage-results"
-          CIRCLE_TEST_REPORTS: /tmp/test-reports
-          CIRCLE_ARTIFACTS: /tmp/artifacts
+orbs:
+  ft-golang-ci: financial-times/golang-ci@1
 
-    steps:
-      - checkout
-      - run:
-          name: Make go get work
-          command: sudo chown -R circleci:circleci /go/src
-      - run:
-          name: Create test folders
-          command:
-            mkdir -p $CIRCLE_TEST_REPORTS
-            mkdir -p $CIRCLE_TEST_REPORTS/golang
-            mkdir -p $CIRCLE_ARTIFACTS
-            mkdir -p $CIRCLE_COVERAGE_REPORTS
-      - run:
-          name: Download vendored dependencies
-          command: dep ensure -v -vendor-only
-      - run:
-          name: Go Build
-          command: go build
-      - run:
-          wget --retry-connrefused --no-check-certificate -T 60 $NEO4J_TEST_URL; curl $NEO4J_TEST_URL
-      - run: |
-          go get -u github.com/jstemmer/go-junit-report
-          go get -u github.com/mattn/goveralls
-          wget https://raw.githubusercontent.com/Financial-Times/cookiecutter-upp-golang/master/coverage.sh && chmod +x coverage.sh
-      - run:
-          name: Run tests
-          command: go test -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORTS}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
-      - run:
-          name: Upload coverage
-          command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORTS}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
-      - store_test_results:
-          path: /tmp/test-reports
+workflows:
+  tests_and_docker:
+    jobs:
+      - ft-golang-ci/build-and-test:
+          name: build-and-test-project
+          executor-name: ft-golang-ci/default-with-neo4j
 
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: build
+      - ft-golang-ci/docker-build:
+          name: build-docker-image
+          requires:
+            - build-and-test-project
+  snyk-scanning:
+    jobs:
+      - ft-golang-ci/scan:
+          name: scan-dependencies
+          context: org-global

@@ -11,7 +11,7 @@ import (
 	logger "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/http-handlers-go/httphandlers"
 	"github.com/Financial-Times/neo-utils-go/neoutils"
-	"github.com/Financial-Times/relations-api/relations"
+	"github.com/Financial-Times/relations-api/v3/relations"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/mux"
 	cli "github.com/jawher/mow.cli"

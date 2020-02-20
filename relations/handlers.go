@@ -8,7 +8,7 @@ import (
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/service-status-go/gtg"
 	"github.com/gorilla/mux"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type HttpHandlers struct {
@@ -28,7 +28,7 @@ func (hh *HttpHandlers) HealthCheck(neoURL string) fthealth.Check {
 	return fthealth.Check{
 		BusinessImpact:   "Unable to respond to Relations API requests",
 		Name:             "Check connectivity to Neo4j",
-		PanicGuide:       "https://dewey.ft.com/upp-relations-api.html",
+		PanicGuide:       "https://runbooks.in.ft.com/upp-relations-api",
 		Severity:         1,
 		TechnicalSummary: fmt.Sprintf(`Cannot connect to Neo4j (%v). Check that Neo4j instance is up and running`, neoURL),
 		Checker:          hh.Checker,
