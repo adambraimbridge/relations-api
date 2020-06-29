@@ -54,7 +54,7 @@ No
 
 ## Dependencies
 
-- neo4j-core
+- upp-neo4j-cluster
 
 ## Failover Architecture Type
 
