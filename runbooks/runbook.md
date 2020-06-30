@@ -42,7 +42,9 @@ AWS
 
 ## Architecture
 
-The relations API is a microservice responsible for getting all the relations for a content by its uuid.
+The relations API is a microservice responsible for getting all the relations for a content by its uuid. It exposes two app specific endpoints:  
+- /content/{uuid}/relations  
+- /contentcollection/{uuid}/relations
 
 ## Contains Personal Data
 
