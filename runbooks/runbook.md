@@ -28,7 +28,6 @@ content
 - hristo.georgiev
 - elitsa.pavlova
 - elina.kaneva
-- georgi.kazakov
 - kalin.arsov
 - ivan.nikolov
 - miroslav.gatsanoga
@@ -43,6 +42,7 @@ AWS
 ## Architecture
 
 The relations API is a microservice responsible for getting all the relations for a content by its uuid. It exposes two app specific endpoints:  
+
 - /content/{uuid}/relations  
 - /contentcollection/{uuid}/relations
 
